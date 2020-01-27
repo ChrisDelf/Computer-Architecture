@@ -2,13 +2,21 @@
 
 import sys
 
+LDI = 0b10000010
+HLT = 1
+PRN = 0b01000111
+
+
 class CPU:
     """Main CPU class."""
 
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [] * 256
+        self.ram = [0] * 256
+        self.pc = 0
+        self.reg = [0] * 8
+        self.sp = 7
 
 
     def load(self):
@@ -61,14 +69,35 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
-
-    def run(self):
-        """Run the CPU."""
-        pass
 ## RAM __________________
     def ram_read(self, mar):
        return self.ram[mar]
-    def ram_write(self, mar, mdr)
+
+    def ram_write(self, mar, mdr):
         self.ram[mar] = mdr
 
+
+    def run(self):
+        """Run the CPU."""
+
+        cpu_on = True
+        while cpu_on is True:
+                command = self.ram[self.pc]
+                if command == LDI: #Set the value of a register to an integer.
+                    self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
+                    self.pc += 3
+
+                elif command == HLT:
+                    cpu_on = False
+                    self.pc += 1
+
+                elif command == PRN: #PRN register pseudo-instruction
+                                     #Print numeric value stored in the given register.
+                                     #Print to the console the decimal integer value that is stored in the given register.
+                    print(self.reg[self.ram[self.pc+1]])
+                    self.pc += 1
+
+
+
+        pass
 
