@@ -21,6 +21,12 @@ class CPU:
         self.sp = 7 # stack pointer, value
                     #at the top of the stack (most recently pushed),
                     # or at address F4 if the stack is empty.
+        # self.branchtable = {}
+        # self.branchtable[HLT] = self.handle_hlt
+        # self.branchtable[LDI] = self.handle_ldi
+        # self.branchtable[PRN] = self.handle_prn
+        # self.branchtable[MUL] = self.handle_mul
+        # self.running = True
 
 
     def load(self, filename):
@@ -50,7 +56,21 @@ class CPU:
 
             self.ram[address] = instruction
             address += 1
-
+    # def handle_hlt(self):
+    #     self.running = False
+    #     # self.pc += 1
+    #
+    # def handle_ldi(self, a, b):
+    #     self.reg[a] = b
+    #     # self.pc += 3
+    #
+    # def handle_prn(self, a):
+    #     print(self.reg[a])
+    #     # self.pc += 2
+    #
+    # def handle_mul(self, a, b):
+    #     self.reg[a] = self.reg[a] * self.reg[b]
+    #     # self.pc += 3
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         # print("SSFSSDDSDSFDS")
@@ -93,7 +113,7 @@ class CPU:
         """Run the CPU."""
 
         cpu_on = True
-        while cpu_on is True:
+        while self.running is True:
                 command = self.ram[self.pc]
                 # print(self.ram)
                 if command == LDI: #Set the value of a register to an integer.
@@ -118,7 +138,22 @@ class CPU:
                     self.reg[self.ram[self.pc+2]]
                     self.alu("MUL", self.ram[self.pc+1], self.ram[self.pc+2])
                     self.pc += 3
+                elif command == PUSH:
 
+                    reg = self.ram[self.pc + 1]
+                    val = self.reg[reg]
+                    self.reg[self.sp] -= 1
+                    self.ram[self.reg[self.sp]] = val
+                    self.pc += 2
+                elif command == POP:
+                    reg = self.ram[self.pc + 1]
+                    val = self.ram[self.reg[self.sp]]
+                    self.reg[reg] = val
+                    self.reg[self.sp] += 1
+                    self.pc += 2
+                elif command == CALL:
+                    reg = self.ram[self.pc + 1]
+                    self.pc = self.reg[reg]
                 else:
                     break
 
