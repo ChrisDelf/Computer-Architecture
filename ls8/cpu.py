@@ -7,6 +7,9 @@ LDI = 0b10000010
 HLT = 1
 PRN = 0b01000111
 MUL  = 0b10100010
+PUSH = 0b01000101
+POP  = 0b01000110
+CALL = 0b01010000
 
 
 class CPU:
@@ -113,7 +116,7 @@ class CPU:
         """Run the CPU."""
 
         cpu_on = True
-        while self.running is True:
+        while cpu_on is True:
                 command = self.ram[self.pc]
                 # print(self.ram)
                 if command == LDI: #Set the value of a register to an integer.
