@@ -61,18 +61,19 @@ class CPU:
             address += 1
     def handle_hlt(self):
         self.running = False
-
+        self.pc += 1
 
     def handle_ldi(self, a, b):
         self.reg[a] = b
-
+        self.pc += 3
 
     def handle_prn(self, a):
         print(self.reg[a])
-
+        self.pc += 2
 
     def handle_mul(self, a, b):
         self.reg[a] = self.reg[a] * self.reg[b]
+        self.pc += 3
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -158,7 +159,6 @@ class CPU:
             num_operands = IR >> 6
 
             if IR in self.branchtable:
-                print(IR)
                 if num_operands == 0:
                     self.branchtable[IR]()
                     print("0")
@@ -167,8 +167,9 @@ class CPU:
                     print("1")
                 elif num_operands == 2:
                     self.branchtable[IR](operand_a, operand_b)
-            else:
-                break
+                    # breakpoint()
+                else:
+                    break
 
 
 
