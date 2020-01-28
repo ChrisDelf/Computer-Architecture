@@ -10,6 +10,7 @@ MUL  = 0b10100010
 PUSH = 0b01000101
 POP  = 0b01000110
 CALL = 0b01010000
+ADD = 0b10100000
 
 
 class CPU:
@@ -24,12 +25,12 @@ class CPU:
         self.sp = 7 # stack pointer, value
                     #at the top of the stack (most recently pushed),
                     # or at address F4 if the stack is empty.
-        # self.branchtable = {}
-        # self.branchtable[HLT] = self.handle_hlt
-        # self.branchtable[LDI] = self.handle_ldi
-        # self.branchtable[PRN] = self.handle_prn
-        # self.branchtable[MUL] = self.handle_mul
-        # self.running = True
+        self.branchtable = {}
+        self.branchtable[HLT] = self.handle_hlt
+        self.branchtable[LDI] = self.handle_ldi
+        self.branchtable[PRN] = self.handle_prn
+        self.branchtable[MUL] = self.handle_mul
+        self.running = True
 
 
     def load(self, filename):
@@ -56,27 +57,26 @@ class CPU:
         program = [int(x, 2) for x in program if len(x) > 0]
 
         for instruction in program:
-
             self.ram[address] = instruction
             address += 1
-    # def handle_hlt(self):
-    #     self.running = False
-    #     # self.pc += 1
-    #
-    # def handle_ldi(self, a, b):
-    #     self.reg[a] = b
-    #     # self.pc += 3
-    #
-    # def handle_prn(self, a):
-    #     print(self.reg[a])
-    #     # self.pc += 2
-    #
-    # def handle_mul(self, a, b):
-    #     self.reg[a] = self.reg[a] * self.reg[b]
-    #     # self.pc += 3
+    def handle_hlt(self):
+        self.running = False
+
+
+    def handle_ldi(self, a, b):
+        self.reg[a] = b
+
+
+    def handle_prn(self, a):
+        print(self.reg[a])
+
+
+    def handle_mul(self, a, b):
+        self.reg[a] = self.reg[a] * self.reg[b]
+
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        # print("SSFSSDDSDSFDS")
+        print("SSFSSDDSDSFDS")
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -112,52 +112,63 @@ class CPU:
         self.ram[mar] = mdr
 
 
+    # def run(self):
+    #     """Run the CPU."""
+    #
+    #     cpu_on = True
+    #     while cpu_on is True:
+    #             command = self.ram[self.pc]
+    #             # print(self.ram)
+    #             if command == LDI: #Set the value of a register to an integer.
+    #                 self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
+    #                 self.pc += 3
+    #
+    #             elif command == HLT:
+    #                 # print("exiting?")
+    #                 cpu_on = False
+    #                 self.pc += 1
+    #
+    #
+    #             elif command == PRN: #PRN register pseudo-instruction
+    #                                  #Print numeric value stored in the given register.
+    #                                  #Print to the console the decimal integer value that is stored in the given register.
+    #                 print(self.reg[self.ram[self.pc+1]])
+    #                 self.pc += 1
+    #             elif command == MUL:# This is an instruction handled by the ALU
+    #                                  # Multiply the values in two registers
+    #                                  # together and store the result in registerA.
+    #                 # print("34234fsfsfswerewr")
+    #                 self.reg[self.ram[self.pc+2]]
+    #                 self.alu("mul", self.ram[self.pc+1], self.ram[self.pc+2])
+    #                 self.pc += 3
+    #             else:
+    #                h break
+    #
+
+    # step 9
     def run(self):
         """Run the CPU."""
 
         cpu_on = True
-        while cpu_on is True:
-                command = self.ram[self.pc]
-                # print(self.ram)
-                if command == LDI: #Set the value of a register to an integer.
-                    self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
-                    self.pc += 3
+        while self.running is True:
+            IR = self.ram_read(self.pc)
 
-                elif command == HLT:
-                    # print("exiting?")
-                    cpu_on = False
-                    self.pc += 1
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            num_operands = IR >> 6
 
+            if IR in self.branchtable:
+                print(IR)
+                if num_operands == 0:
+                    self.branchtable[IR]()
+                    print("0")
+                elif num_operands == 1:
+                    self.branchtable[IR](operand_a)
+                    print("1")
+                elif num_operands == 2:
+                    self.branchtable[IR](operand_a, operand_b)
+            else:
+                break
 
-                elif command == PRN: #PRN register pseudo-instruction
-                                     #Print numeric value stored in the given register.
-                                     #Print to the console the decimal integer value that is stored in the given register.
-                    print(self.reg[self.ram[self.pc+1]])
-                    self.pc += 1
-                elif command == MUL:# This is an instruction handled by the ALU
-                                     # Multiply the values in two registers
-                                     # together and store the result in registerA.
-                    # print("34234fsfsfswerewr")
-                    self.reg[self.ram[self.pc+2]]
-                    self.alu("MUL", self.ram[self.pc+1], self.ram[self.pc+2])
-                    self.pc += 3
-                elif command == PUSH:
-
-                    reg = self.ram[self.pc + 1]
-                    val = self.reg[reg]
-                    self.reg[self.sp] -= 1
-                    self.ram[self.reg[self.sp]] = val
-                    self.pc += 2
-                elif command == POP:
-                    reg = self.ram[self.pc + 1]
-                    val = self.ram[self.reg[self.sp]]
-                    self.reg[reg] = val
-                    self.reg[self.sp] += 1
-                    self.pc += 2
-                elif command == CALL:
-                    reg = self.ram[self.pc + 1]
-                    self.pc = self.reg[reg]
-                else:
-                    break
 
 
