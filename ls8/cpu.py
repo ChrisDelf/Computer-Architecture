@@ -12,7 +12,7 @@ POP  = 0b01000110
 CALL = 0b01010000
 ADD = 0b10100000
 
-SP =
+SP = 7
 class CPU:
     """Main CPU class."""
 
