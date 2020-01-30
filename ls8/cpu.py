@@ -12,7 +12,7 @@ POP  = 0b01000110
 CALL = 0b01010000
 ADD = 0b10100000
 
-
+SP = 7
 class CPU:
     """Main CPU class."""
 
@@ -22,7 +22,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0  # program counter, address of the currently executing instruction.
         self.reg = [0] * 8
-        self.sp = 7 # stack pointer, value
+        self.reg[SP] = 0xF4 # stack pointer, value
                     #at the top of the stack (most recently pushed),
                     # or at address F4 if the stack is empty.
         self.branchtable = {}
@@ -30,6 +30,8 @@ class CPU:
         self.branchtable[LDI] = self.handle_ldi
         self.branchtable[PRN] = self.handle_prn
         self.branchtable[MUL] = self.handle_mul
+        self.branchtable[PUSH] = self.handle_push
+        self.branchtable[POP] = self.handle_pop
         self.running = True
 
 
@@ -59,6 +61,18 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+    def handle_push(self, a):
+
+        self.reg[SP] -= 1
+        self.ram[self.reg[SP]] = self.reg[a]
+        self.pc += 2
+
+    def handle_pop(self, a):
+
+        self.reg[a] = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
+        self.pc += 2
+
     def handle_hlt(self):
         self.running = False
         self.pc += 1
@@ -164,9 +178,11 @@ class CPU:
                     print("0")
                 elif num_operands == 1:
                     self.branchtable[IR](operand_a)
-                    print("1")
+
                 elif num_operands == 2:
+
                     self.branchtable[IR](operand_a, operand_b)
+
                     # breakpoint()
                 else:
                     break
