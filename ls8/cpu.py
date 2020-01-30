@@ -11,6 +11,7 @@ PUSH = 0b01000101
 POP  = 0b01000110
 CALL = 0b01010000
 ADD = 0b10100000
+RET = 0b00010001
 
 SP = 7
 class CPU:
@@ -32,6 +33,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_mul
         self.branchtable[PUSH] = self.handle_push
         self.branchtable[POP] = self.handle_pop
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[RET]  = self.handle_ret
+        self.branchtable[ADD] = self.handle_add
         self.running = True
 
 
@@ -61,6 +65,19 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+    def handle_call(self, a):
+        # breakpoint()
+        return_address = self.pc +2
+        print("return", return_address)
+        self.pc -= 1
+        self.ram[self.reg[SP]] = return_address
+        self.pc = self.reg[a]
+        print("PC", self.pc)
+
+    def handle_ret(self):
+        print("Hello")
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
     def handle_push(self, a):
 
         self.reg[SP] -= 1
@@ -89,6 +106,9 @@ class CPU:
         self.reg[a] = self.reg[a] * self.reg[b]
         self.pc += 3
 
+    def handle_add(self, a, b):
+        self.reg[a] = self.reg[a] + self.reg[b]
+        self.pc += 3
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         print("SSFSSDDSDSFDS")
@@ -173,12 +193,14 @@ class CPU:
             num_operands = IR >> 6
 
             if IR in self.branchtable:
+
                 if num_operands == 0:
                     self.branchtable[IR]()
                     print("0")
                 elif num_operands == 1:
+                    print(IR)
+                    # breakpoint()
                     self.branchtable[IR](operand_a)
-
                 elif num_operands == 2:
 
                     self.branchtable[IR](operand_a, operand_b)
