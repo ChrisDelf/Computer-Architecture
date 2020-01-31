@@ -12,6 +12,11 @@ POP  = 0b01000110
 CALL = 0b01010000
 ADD = 0b10100000
 RET = 0b00010001
+## CMP
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 SP = 7
 class CPU:
@@ -26,6 +31,7 @@ class CPU:
         self.reg[SP] = 0xF4 # stack pointer, value
                     #at the top of the stack (most recently pushed),
                     # or at address F4 if the stack is empty.
+        self.fl = 0
         self.branchtable = {}
         self.branchtable[HLT] = self.handle_hlt
         self.branchtable[LDI] = self.handle_ldi
@@ -36,6 +42,10 @@ class CPU:
         self.branchtable[CALL] = self.handle_call
         self.branchtable[RET]  = self.handle_ret
         self.branchtable[ADD] = self.handle_add
+        self.branchtable[CMP] = self.handle_cmp
+        self.branchtable[JMP] = self.handle_jmp
+        self.branchtable[JEQ] = self.handle_jeq
+        self.branchtable[JNE] = self.handle_jne
         self.running = True
 
 
@@ -65,6 +75,33 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+    def handle_cmp(self, a, b):
+        value_a = self.reg[a]
+        value_b = self.reg[b]
+        if value_a < value_b:
+            self.fl = 0b100
+        elif value_a > value_b:
+            self.fl = 0b010
+        elif value_a == value_b:
+            self.fl = 0b001
+        self.pc += 3
+
+    def handle_jmp(self, a):
+        self.pc = self.reg[a]
+
+    def handle_jne(self, a):
+        ne_flag = self.fl & 0b001
+        if ne_flag == 0:
+            self.pc = self.reg[a]
+        else:
+            self.pc += 2
+
+    def handle_jeq(self, a):
+        if self.fl == 0b001:
+            self.pc = self.reg[a]
+        else:
+            self.pc += 2
+
     def handle_call(self, a):
         # breakpoint()
         return_address = self.pc +2
@@ -198,7 +235,7 @@ class CPU:
                     self.branchtable[IR]()
                     print("0")
                 elif num_operands == 1:
-                    print(IR)
+                    # print(IR)
                     # breakpoint()
                     self.branchtable[IR](operand_a)
                 elif num_operands == 2:
